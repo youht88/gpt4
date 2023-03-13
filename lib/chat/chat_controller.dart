@@ -115,3 +115,49 @@ class ChatController extends GetxController {
     }
   }
 }
+
+    // final dio = Dio();
+    // Response<ResponseBody> rs = await Dio().get<ResponseBody>(
+    //   'http://0003.gpt4.vip:9322/openai/chat?prompt=帮我随机想一个演讲主题，要有随机性&stream',
+    //   options: Options(headers: {
+    //     "Accept": "text/event-stream",
+    //     "Cache-Control": "no-cache",
+    //   }, responseType: ResponseType.stream),
+    // );
+    // StreamTransformer<Uint8List, List<int>> unit8Transformer =
+    //     StreamTransformer.fromHandlers(
+    //   handleData: (data, sink) {
+    //     sink.add(List<int>.from(data));
+    //   },
+    // );
+    // rs.data?.stream
+    //     .transform(unit8Transformer)
+    //     .transform(const Utf8Decoder())
+    //     .transform(const LineSplitter())
+    //     .listen((event) {
+    //   setState(() {
+    //     message += event;
+    //   });
+    // }, onDone: () {
+    //   setState(() {
+    //     message += '[DONE]';
+    //   });
+    // }, onError: (e) {
+    //   print("$e");
+    // });
+
+    // // 创建 EventSource 实例
+    // EventSource eventSource = EventSource(
+    //     'http://0003.gpt4.vip:9322/openai/chat?prompt=hello&stream');
+    // // 监听 SSE 事件
+    // eventSource.onMessage.listen((event) {
+    //   print('Received SSE message: ${event.data}');
+    // });
+    // // 监听 SSE 错误事件
+    // eventSource.onError.listen((error) {
+    //   print('Error occurred: $error');
+    //   eventSource.close();
+    // });
+    // setState(() {
+    //   _counter++;
+    // });
