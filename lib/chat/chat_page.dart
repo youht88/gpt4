@@ -17,128 +17,132 @@ class ChatPage extends StatelessWidget {
     ChatController controller = Get.put(ChatController());
     return GetBuilder<ChatController>(
       builder: (_) {
-        return Scaffold(
-            appBar: false
-                ? AppBar(
-                    title: TextField(
-                        decoration:
-                            InputDecoration(hintText: controller.address),
+        return SafeArea(
+          child: Scaffold(
+              appBar: false
+                  ? AppBar(
+                      title: TextField(
+                          decoration:
+                              InputDecoration(hintText: controller.address),
+                          onChanged: (data) {
+                            if (data != "") {
+                              controller.address = data;
+                            }
+                          }))
+                  : null,
+              body: Padding(
+                padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
+                child: Column(
+                  children: [
+                    NeuTextField(
+                        maxLines: 4,
+                        hintText: "输入指令...",
                         onChanged: (data) {
-                          if (data != "") {
-                            controller.address = data;
-                          }
-                        }))
-                : null,
-            body: Padding(
-              padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
-              child: Column(
-                children: [
-                  NeuTextField(
-                      maxLines: 4,
-                      hintText: "输入指令...",
-                      onChanged: (data) {
-                        controller.prompt = data;
-                      },
-                      textEditingController: controller.editController),
-                  //SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      NeuButton(
-                        "",
-                        onPressed: () async {
-                          if (controller.parsing) return;
-                          controller.prompt = "";
-                          controller.chatMessageList.flush();
-                          controller.editController.clear();
-                          controller.update();
-                          print("开启新的话题");
+                          controller.prompt = data;
                         },
-                        //color: Colors.green,
-                        iconData: Icons.new_label_rounded,
-                        shape: NeumorphicShape.concave,
-                        boxShape: const NeumorphicBoxShape.circle(),
-                      ),
-                      NeuButton(
-                        "",
-                        onPressed: () async {
-                          if (controller.parsing) return;
-                          controller.parsing = true;
-                          controller.thinkOK = false;
-                          controller.thinking();
-                          controller.update();
-                          await controller.sendMessage();
-                        },
-                        color: Colors.green,
-                        iconData: Icons.send,
-                        shape: NeumorphicShape.concave,
-                        boxShape: const NeumorphicBoxShape.circle(),
-                      ),
-                      NeuButton(
-                        "",
-                        onPressed: () async {
-                          if (controller.parsing) return;
-                          controller.prompt = "";
-                          controller.editController.clear();
-                        },
-                        //color: Colors.green,
-                        iconData: Icons.cleaning_services,
-                        shape: NeumorphicShape.concave,
-                        boxShape: const NeumorphicBoxShape.circle(),
-                      ),
-                      NeuButton(
-                        "",
-                        onPressed: () async {
-                          if (controller.parsing) return;
-                          await Clipboard.setData(ClipboardData(
-                              text:
-                                  "${controller.prompt}\n${controller.completion}"));
-                        },
-                        iconData: Icons.copy,
-                        shape: NeumorphicShape.concave,
-                        boxShape: const NeumorphicBoxShape.circle(),
-                      ),
-                    ],
-                  ),
-                  //SizedBox(height: 8),
-                  Expanded(
-                      child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: false
-                        ? MarkdownWidget(
-                            data: controller.completion,
-                            config: MarkdownConfig(configs: [
-                              //PreConfig(language: '*'),
-                              //PreConfig(language: 'js'),
-                            ]))
-                        : Align(
-                            alignment: Alignment.topLeft,
-                            child: SingleChildScrollView(
-                              child: !controller.thinkOK
-                                  ? Text(controller.thinkText,
-                                      style: TextStyle(fontSize: 20))
-                                  : MarkdownViewer(
-                                      controller.completion,
-                                      syntaxExtensions: [ExampleSyntax()],
-                                      highlightBuilder:
-                                          (text, language, infoString) {
-                                        final prism = Prism(
-                                          mouseCursor: SystemMouseCursors.text,
-                                          style: Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? const PrismStyle.dark()
-                                              : const PrismStyle(),
-                                        );
-                                        return prism.render(
-                                            text, language ?? 'plain');
-                                      },
-                                    ),
+                        textEditingController: controller.editController),
+                    //SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        NeuButton(
+                          "",
+                          onPressed: () async {
+                            if (controller.parsing) return;
+                            controller.prompt = "";
+                            controller.chatMessageList.flush();
+                            controller.editController.clear();
+                            controller.update();
+                            print("开启新的话题");
+                          },
+                          //color: Colors.green,
+                          iconData: Icons.new_label_rounded,
+                          shape: NeumorphicShape.concave,
+                          boxShape: const NeumorphicBoxShape.circle(),
+                        ),
+                        NeuButton(
+                          "",
+                          onPressed: () async {
+                            if (controller.parsing) return;
+                            controller.parsing = true;
+                            controller.thinkOK = false;
+                            controller.thinking();
+                            controller.update();
+                            await controller.sendMessage();
+                          },
+                          color: Colors.green,
+                          iconData: Icons.send,
+                          shape: NeumorphicShape.concave,
+                          boxShape: const NeumorphicBoxShape.circle(),
+                        ),
+                        NeuButton(
+                          "",
+                          onPressed: () async {
+                            if (controller.parsing) return;
+                            controller.prompt = "";
+                            controller.editController.clear();
+                          },
+                          //color: Colors.green,
+                          iconData: Icons.cleaning_services,
+                          shape: NeumorphicShape.concave,
+                          boxShape: const NeumorphicBoxShape.circle(),
+                        ),
+                        NeuButton(
+                          "",
+                          onPressed: () async {
+                            if (controller.parsing) return;
+                            await Clipboard.setData(ClipboardData(
+                                text:
+                                    "${controller.prompt}\n${controller.completion}"));
+                          },
+                          iconData: Icons.copy,
+                          shape: NeumorphicShape.concave,
+                          boxShape: const NeumorphicBoxShape.circle(),
+                        ),
+                      ],
+                    ),
+                    //SizedBox(height: 8),
+                    Expanded(
+                        child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: false
+                          ? MarkdownWidget(
+                              data: controller.completion,
+                              config: MarkdownConfig(configs: [
+                                //PreConfig(language: '*'),
+                                //PreConfig(language: 'js'),
+                              ]))
+                          : Align(
+                              alignment: Alignment.topLeft,
+                              child: SingleChildScrollView(
+                                child: !controller.thinkOK
+                                    ? Text(controller.thinkText,
+                                        style: TextStyle(fontSize: 20))
+                                    : MarkdownViewer(
+                                        controller.completion,
+                                        syntaxExtensions: [ExampleSyntax()],
+                                        highlightBuilder:
+                                            (text, language, infoString) {
+                                          final prism = Prism(
+                                            mouseCursor:
+                                                SystemMouseCursors.text,
+                                            style:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? const PrismStyle.dark()
+                                                    : const PrismStyle(),
+                                          );
+                                          return prism.render(
+                                              text, language ?? 'plain');
+                                        },
+                                      ),
+                              ),
                             ),
-                          ),
-                  )),
-                ],
-              ),
-            ));
+                    )),
+                  ],
+                ),
+              )),
+        );
       },
     );
   }

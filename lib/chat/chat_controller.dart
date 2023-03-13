@@ -45,7 +45,7 @@ class ChatMessageList {
 class ChatController extends GetxController {
   bool parsing = false;
   bool thinkOK = false;
-  String address = "http://0003.gpt4.vip:9322";
+  String address = "http://0004.gpt4.vip:9322";
   //String address = "http://localhost:3000";
   String completion = "";
   String prompt = "";
@@ -162,7 +162,7 @@ class ChatController extends GetxController {
         request.headers["Accept"] = "text/event-stream";
         request.headers['Content-Type'] = 'application/json';
         request.body = json.encode({"stream": true, "messages": messages});
-        print(request.body);
+        debugPrint(request.body);
         completion = "";
         update();
         Future<http.StreamedResponse> response = _client.send(request);
@@ -177,7 +177,7 @@ class ChatController extends GetxController {
           }, onDone: () {
             chatMessageList.add(ChatMessage("assistant", completion));
             parsing = false;
-            print("数据传输完毕");
+            debugPrint("数据传输完毕");
           });
           update();
         });
