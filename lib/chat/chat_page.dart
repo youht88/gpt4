@@ -49,7 +49,6 @@ class ChatPage extends StatelessWidget {
                         onPressed: () async {
                           if (controller.parsing) return;
                           controller.prompt = "";
-                          controller.completion = "新话题...";
                           controller.chatMessageList.flush();
                           controller.editController.clear();
                           controller.update();
@@ -64,12 +63,11 @@ class ChatPage extends StatelessWidget {
                         "",
                         onPressed: () async {
                           if (controller.parsing) return;
-                          if (controller.parsing) return;
                           controller.parsing = true;
+                          controller.thinkOK = false;
+                          controller.thinking();
                           controller.update();
                           await controller.sendMessage();
-                          controller.parsing = false;
-                          controller.update();
                         },
                         color: Colors.green,
                         iconData: Icons.send,
@@ -106,7 +104,7 @@ class ChatPage extends StatelessWidget {
                   Expanded(
                       child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: GetPlatform.isWeb
+                    child: false
                         ? MarkdownWidget(
                             data: controller.completion,
                             config: MarkdownConfig(configs: [
@@ -116,21 +114,25 @@ class ChatPage extends StatelessWidget {
                         : Align(
                             alignment: Alignment.topLeft,
                             child: SingleChildScrollView(
-                              child: MarkdownViewer(
-                                controller.completion,
-                                syntaxExtensions: [ExampleSyntax()],
-                                highlightBuilder: (text, language, infoString) {
-                                  final prism = Prism(
-                                    mouseCursor: SystemMouseCursors.text,
-                                    style: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? const PrismStyle.dark()
-                                        : const PrismStyle(),
-                                  );
-                                  return prism.render(
-                                      text, language ?? 'plain');
-                                },
-                              ),
+                              child: !controller.thinkOK
+                                  ? Text(controller.thinkText,
+                                      style: TextStyle(fontSize: 20))
+                                  : MarkdownViewer(
+                                      controller.completion,
+                                      syntaxExtensions: [ExampleSyntax()],
+                                      highlightBuilder:
+                                          (text, language, infoString) {
+                                        final prism = Prism(
+                                          mouseCursor: SystemMouseCursors.text,
+                                          style: Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? const PrismStyle.dark()
+                                              : const PrismStyle(),
+                                        );
+                                        return prism.render(
+                                            text, language ?? 'plain');
+                                      },
+                                    ),
                             ),
                           ),
                   )),
