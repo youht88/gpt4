@@ -53,32 +53,18 @@ class SocketClient {
 
   void onCompletionChunk() {
     String temp = "";
-    List<String> questions = [];
     bool check = false;
     socket.on('completionChunk', ((data) {
       if (!chatController.parsing) return;
       if (data != '[DONE]' && data != '[ERROR]') {
         chatController.thinkOK = true;
-        debugPrint(data);
-        if (data.toString().trim().startsWith("<<")) {
-          temp += data;
+        if (data.toString().trim() == "@@@@") {
           check = true;
           return;
         }
-        if (check && data.toString().trim().endsWith(">>")) {
+        if (check) {
           temp += data;
-          if (temp.contains("?")) {
-            //不显示，处理进一步问题
-            debugPrint("进一步");
-            questions.add(temp);
-            temp = "";
-            return;
-          } else {
-            chatController.completion = chatController.completion + temp;
-            temp = "";
-            chatController.update();
-            return;
-          }
+          return;
         }
         chatController.completion = chatController.completion + data;
         chatController.update();
@@ -87,9 +73,29 @@ class SocketClient {
         chatController.chatMessageList
             .add(ChatMessage("assistant", chatController.completion));
         debugPrint("数据传输完毕");
+        List<String> questions = temp
+            .replaceAll("\n", "")
+            .replaceAll("相关问题：", "")
+            .split(RegExp('[?？]'))
+            .map((item) => item.replaceAll(RegExp(r"^\d\."), ""))
+            .where((item) => item.trim() != "" && item.trim() != "为什么")
+            .toList();
+        List<String> questions1 = temp
+            .replaceAll("\n", "")
+            .replaceAll("相关问题：", "")
+            .split(RegExp(r'\d\.'))
+            .where((item) => item.trim() != "")
+            .toList();
         debugPrint("$questions");
+        debugPrint("$questions1");
+        if (questions.isNotEmpty) {
+          chatController.questions = questions;
+        } else if (questions1.isNotEmpty) {
+          chatController.questions = questions1;
+        }
         temp = "";
         check = false;
+        chatController.update();
       }
     }));
   }

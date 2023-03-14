@@ -51,6 +51,7 @@ class ChatController extends GetxController {
   String completion = "";
   String prompt = "";
   String thinkText = "";
+  List<String> questions = [];
   var editController = TextEditingController();
   ChatMessageList chatMessageList = ChatMessageList();
   late SocketClient socketClient;
@@ -58,6 +59,16 @@ class ChatController extends GetxController {
   void onInit() {
     super.onInit();
     socketClient = SocketClient(this);
+  }
+
+  void help() {
+    completion = '''\\\n\\\n **zero-gpt  `http://gpt4.vip`  使用说明**
+           \\\n\\\n `新话题`: 新开启一个话题，消除之前上下文的影响 
+           \\\n\\\n `发送`  : 发送指令并获得回复 
+           \\\n\\\n `复制`  : 将最近的指令和回复一起复制到粘贴板📋
+           \\\n\\\n  ---- made by *易联众-云链科技* ----
+        ''';
+    update();
   }
 
   void thinking() {
@@ -88,6 +99,11 @@ class ChatController extends GetxController {
 
   Future<void> sendMessage() async {
     try {
+      if (parsing) return;
+      parsing = true;
+      thinkOK = false;
+      thinking();
+      update();
       chatMessageList.add(ChatMessage("user", prompt));
       List<dynamic> messages = chatMessageList.toJSON();
       while (true) {

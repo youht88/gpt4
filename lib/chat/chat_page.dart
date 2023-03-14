@@ -40,64 +40,65 @@ class ChatPage extends StatelessWidget {
                         onChanged: (data) {
                           controller.prompt = data;
                         },
+                        suffixIcon: GestureDetector(
+                            onTap: () {
+                              if (controller.parsing) return;
+                              controller.prompt = "";
+                              controller.editController.clear();
+                            },
+                            child: Icon(Icons.close)),
                         textEditingController: controller.editController),
                     //SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
+                        NeuButton("新话题", onPressed: () async {
+                          if (controller.parsing) return;
+                          controller.prompt = "";
+                          controller.completion = "";
+                          controller.chatMessageList.flush();
+                          controller.editController.clear();
+                          controller.update();
+                          print("开启新的话题");
+                        },
+                            //color: Colors.green,
+                            //iconData: Icons.new_label_rounded,
+                            shape: NeumorphicShape.concave,
+                            depth: 1),
                         NeuButton(
-                          "",
+                          "发送",
                           onPressed: () async {
-                            if (controller.parsing) return;
-                            controller.prompt = "";
-                            controller.chatMessageList.flush();
-                            controller.editController.clear();
-                            controller.update();
-                            print("开启新的话题");
-                          },
-                          //color: Colors.green,
-                          iconData: Icons.new_label_rounded,
-                          shape: NeumorphicShape.concave,
-                          boxShape: const NeumorphicBoxShape.circle(),
-                        ),
-                        NeuButton(
-                          "",
-                          onPressed: () async {
-                            if (controller.parsing) return;
-                            controller.parsing = true;
-                            controller.thinkOK = false;
-                            controller.thinking();
-                            controller.update();
                             await controller.sendMessage();
                           },
-                          color: Colors.green,
-                          iconData: Icons.send,
-                          shape: NeumorphicShape.concave,
-                          boxShape: const NeumorphicBoxShape.circle(),
-                        ),
-                        NeuButton(
-                          "",
-                          onPressed: () async {
-                            if (controller.parsing) return;
-                            controller.prompt = "";
-                            controller.editController.clear();
-                          },
                           //color: Colors.green,
-                          iconData: Icons.cleaning_services,
+                          //iconData: Icons.send,
+                          depth: 1,
                           shape: NeumorphicShape.concave,
-                          boxShape: const NeumorphicBoxShape.circle(),
+                          //boxShape: const NeumorphicBoxShape.circle(),
                         ),
                         NeuButton(
-                          "",
+                          "复制",
                           onPressed: () async {
                             if (controller.parsing) return;
                             await Clipboard.setData(ClipboardData(
                                 text:
                                     "${controller.prompt}\n${controller.completion}"));
                           },
-                          iconData: Icons.copy,
+                          //iconData: Icons.copy,
                           shape: NeumorphicShape.concave,
-                          boxShape: const NeumorphicBoxShape.circle(),
+                          depth: 1,
+                          //boxShape: const NeumorphicBoxShape.circle(),
+                        ),
+                        NeuButton(
+                          "",
+                          onPressed: () async {
+                            if (controller.parsing) return;
+                            controller.help();
+                          },
+                          iconData: Icons.help,
+                          shape: NeumorphicShape.concave,
+                          depth: 1,
+                          //boxShape: const NeumorphicBoxShape.circle(),
                         ),
                       ],
                     ),
@@ -105,12 +106,11 @@ class ChatPage extends StatelessWidget {
                     Expanded(
                         child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: false
+                      child: kIsWeb
                           ? MarkdownWidget(
                               data: controller.completion,
                               config: MarkdownConfig(configs: [
-                                //PreConfig(language: '*'),
-                                //PreConfig(language: 'js'),
+                                const PreConfig(language: 'auto'),
                               ]))
                           : Align(
                               alignment: Alignment.topLeft,
@@ -139,6 +139,23 @@ class ChatPage extends StatelessWidget {
                               ),
                             ),
                     )),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Wrap(
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children: controller.questions
+                            .map((item) => ElevatedButton(
+                                onPressed: () {
+                                  controller.prompt = item;
+                                  controller.editController.text = item;
+                                  controller.questions = [];
+                                  controller.sendMessage();
+                                },
+                                child: Text(item)))
+                            .toList(),
+                      ),
+                    )
                   ],
                 ),
               )),

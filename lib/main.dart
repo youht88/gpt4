@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
               defaultTextColor: Colors.white),
           home: GetMaterialApp(
             debugShowCheckedModeBanner: false,
-            title: '极简gpt',
+            title: 'zero-gpt',
             theme: //FlexThemeData.light(scheme: FlexScheme.mandyRed),
                 ThemeData(
               brightness: Brightness.light,
