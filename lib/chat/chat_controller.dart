@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dio/dio.dart' as dio;
-import 'package:flutter/foundation.dart';
+//import 'package:dio/dio.dart' as dio;
+//import 'package:flutter/foundation.dart';
+//import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
+import 'package:gpt4/socket/socket_client.dart';
 
 class ChatMessage {
   late String role;
@@ -52,6 +53,13 @@ class ChatController extends GetxController {
   String thinkText = "";
   var editController = TextEditingController();
   ChatMessageList chatMessageList = ChatMessageList();
+  late SocketClient socketClient;
+  @override
+  void onInit() {
+    super.onInit();
+    socketClient = SocketClient(this);
+  }
+
   void thinking() {
     // 初始化字符串和计数器
     thinkText = '';
@@ -100,88 +108,66 @@ class ChatController extends GetxController {
           break;
         }
       }
-      if (false) {
-        // 模式一、dio模式
-        // Dio dio = Dio();
-        // dio.options.headers["content-type"] = "application/json";
-        // dio.options.headers["Cache-Control"] = "no-cache";
-        // dio.options.responseType = ResponseType.plain;
-        // completion = "...";
-        // update();
-        // // final res = await dio.post<String>("$address/openai/chat",
-        // //     data: {"stream": false, "messages": messages});
-        // final res = await dio.get<String>(
-        //   "$address/openai/test",
-        // );
-        // completion = "answer:$res";
-        // update();
-        // completion = res.data ?? "";
-        // update();
-        // 模式二、EventSource模式
-        //// 创建 EventSource 实例
-        // EventSource eventSource = EventSource('$address/openai/test');
-        // // 监听 SSE 事件
-        // eventSource.onMessage.listen((event) {
-        //   completion += event.data;
-        //   update();
-        // });
-        // // 监听 SSE 错误事件
-        // eventSource.onError.listen((error) {
-        //   print('Error occurred: $error');
-        //   eventSource.close();
-        // });
-        //模式三、http
-        var _client = http.Client();
-        var request = http.Request("GET", Uri.parse("$address/openai/test"));
-        request.headers["Cache-Control"] = "no-cache";
-        request.headers["Accept"] = "text/event-stream";
-        request.headers['Content-Type'] = 'application/json';
-        //request.body = json.encode({"stream": true, "messages": messages});
-        print(request.body);
-        completion = "";
-        update();
-        Future<http.StreamedResponse> response = _client.send(request);
-        debugPrint("Subscribed!");
-        response.asStream().listen((streamedResponse) {
-          debugPrint(
-              "Received streamedResponse.statusCode:${streamedResponse.statusCode}");
-          streamedResponse.stream.listen((res) {
-            print(utf8.decode(res));
-            completion = completion + utf8.decode(res);
-            update();
-          }, onDone: () {
-            chatMessageList.add(ChatMessage("assistant", completion));
-            print("数据传输完毕");
-          });
-          update();
-        });
-      } else {
-        var _client = http.Client();
-        var request = http.Request("POST", Uri.parse("$address/openai/chat"));
-        request.headers["Cache-Control"] = "no-cache";
-        request.headers["Accept"] = "text/event-stream";
-        request.headers['Content-Type'] = 'application/json';
-        request.body = json.encode({"stream": true, "messages": messages});
-        debugPrint(request.body);
-        completion = "";
-        update();
-        Future<http.StreamedResponse> response = _client.send(request);
-        debugPrint("Subscribed!");
-        response.asStream().listen((streamedResponse) {
-          debugPrint(
-              "Received streamedResponse.statusCode:${streamedResponse.statusCode}");
-          streamedResponse.stream.listen((res) {
-            thinkOK = true;
-            completion = completion + utf8.decode(res);
-            update();
-          }, onDone: () {
-            chatMessageList.add(ChatMessage("assistant", completion));
-            parsing = false;
-            debugPrint("数据传输完毕");
-          });
-          update();
-        });
-      }
+      // 模式一、dio模式
+      // Dio dio = Dio();
+      // dio.options.headers["content-type"] = "application/json";
+      // dio.options.headers["Cache-Control"] = "no-cache";
+      // dio.options.responseType = ResponseType.plain;
+      // completion = "...";
+      // update();
+      // // final res = await dio.post<String>("$address/openai/chat",
+      // //     data: {"stream": false, "messages": messages});
+      // final res = await dio.get<String>(
+      //   "$address/openai/test",
+      // );
+      // completion = "answer:$res";
+      // update();
+      // completion = res.data ?? "";
+      // update();
+      // 模式二、EventSource模式
+      //// 创建 EventSource 实例
+      // EventSource eventSource = EventSource('$address/openai/test');
+      // // 监听 SSE 事件
+      // eventSource.onMessage.listen((event) {
+      //   completion += event.data;
+      //   update();
+      // });
+      // // 监听 SSE 错误事件
+      // eventSource.onError.listen((error) {
+      //   print('Error occurred: $error');
+      //   eventSource.close();
+      // });
+      //模式三、http
+      // var _client = http.Client();
+      // var request = http.Request("GET", Uri.parse("$address/openai/test"));
+      // request.headers["Cache-Control"] = "no-cache";
+      // request.headers["Accept"] = "text/event-stream";
+      // request.headers['Content-Type'] = 'application/json';
+      // //request.body = json.encode({"stream": true, "messages": messages});
+      // print(request.body);
+      // completion = "";
+      // update();
+      // Future<http.StreamedResponse> response = _client.send(request);
+      // debugPrint("Subscribed!");
+      // response.asStream().listen((streamedResponse) {
+      //   debugPrint(
+      //       "Received streamedResponse.statusCode:${streamedResponse.statusCode}");
+      //   streamedResponse.stream.listen((res) {
+      //     print(utf8.decode(res));
+      //     completion = completion + utf8.decode(res);
+      //     update();
+      //   }, onDone: () {
+      //     chatMessageList.add(ChatMessage("assistant", completion));
+      //     print("数据传输完毕");
+      //   });
+      //   update();
+      // });
+      //模式四、socket.io
+      messages.insert(0,
+          {"role": "system", "content": "请用中文回答所有问题,然后提出2到4个相关问题,问题以@@@@换行"});
+      socketClient.socket.emit('chat', {"stream": true, "messages": messages});
+      completion = "";
+      update();
     } catch (e) {
       parsing = false;
       thinkOK = true;
@@ -189,48 +175,3 @@ class ChatController extends GetxController {
     }
   }
 }
-
-        // final dioClient = dio.Dio();
-        // dio.Response<dio.ResponseBody> rs =
-        //     await dioClient.get<dio.ResponseBody>(
-        //   '$address/openai/test',
-        //   options: dio.Options(headers: {
-        //     "Accept": "text/event-stream",
-        //     "Cache-Control": "no-cache",
-        //   }, responseType: dio.ResponseType.stream),
-        // );
-        // StreamTransformer<Uint8List, List<int>> unit8Transformer =
-        //     StreamTransformer.fromHandlers(
-        //   handleData: (data, sink) {
-        //     sink.add(List<int>.from(data));
-        //   },
-        // );
-        // rs.data?.stream
-        //     .transform(unit8Transformer)
-        //     .transform(const Utf8Decoder())
-        //     .transform(const LineSplitter())
-        //     .listen((event) {
-        //   completion += event;
-        //   update();
-        // }, onDone: () {
-        //   completion += '[DONE]';
-        //   update();
-        // }, onError: (e) {
-        //   print("$e");
-        // });
-
-    // // 创建 EventSource 实例
-    // EventSource eventSource = EventSource(
-    //     'http://0003.gpt4.vip:9322/openai/chat?prompt=hello&stream');
-    // // 监听 SSE 事件
-    // eventSource.onMessage.listen((event) {
-    //   print('Received SSE message: ${event.data}');
-    // });
-    // // 监听 SSE 错误事件
-    // eventSource.onError.listen((error) {
-    //   print('Error occurred: $error');
-    //   eventSource.close();
-    // });
-    // setState(() {
-    //   _counter++;
-    // });
