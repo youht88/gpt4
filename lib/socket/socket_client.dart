@@ -55,7 +55,6 @@ class SocketClient {
     String temp = "";
     bool check = false;
     socket.on('completionChunk', ((data) {
-      if (!chatController.parsing) return;
       if (data != '[DONE]' && data != '[ERROR]') {
         chatController.thinkOK = true;
         if (data.toString().trim() == "@@@@") {
@@ -69,29 +68,29 @@ class SocketClient {
         chatController.completion = chatController.completion + data;
         chatController.update();
       } else {
+        if (!chatController.parsing) {
+          temp = "";
+          check = false;
+          return;
+        }
+        debugPrint(data);
         chatController.parsing = false;
         chatController.chatMessageList
             .add(ChatMessage("assistant", chatController.completion));
+        chatController.currentIndex =
+            chatController.chatMessageList.data.length;
         debugPrint("数据传输完毕");
         List<String> questions = temp
-            .replaceAll("\n", "")
-            .replaceAll("相关问题：", "")
-            .split(RegExp('[?？]'))
-            .map((item) => item.replaceAll(RegExp(r"^\d\."), ""))
-            .where((item) => item.trim() != "" && item.trim() != "为什么")
-            .toList();
-        List<String> questions1 = temp
-            .replaceAll("\n", "")
-            .replaceAll("相关问题：", "")
-            .split(RegExp(r'\d\.'))
+            .split("\n")
+            .map((item) => item
+                .replaceAll(RegExp("\\s+"), "")
+                .replaceAll("相关问题：", "")
+                .replaceAll(RegExp(r"^\d[\.]"), ""))
             .where((item) => item.trim() != "")
             .toList();
         debugPrint("$questions");
-        debugPrint("$questions1");
         if (questions.isNotEmpty) {
           chatController.questions = questions;
-        } else if (questions1.isNotEmpty) {
-          chatController.questions = questions1;
         }
         temp = "";
         check = false;

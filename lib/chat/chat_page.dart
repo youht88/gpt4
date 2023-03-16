@@ -19,17 +19,7 @@ class ChatPage extends StatelessWidget {
       builder: (_) {
         return SafeArea(
           child: Scaffold(
-              appBar: false
-                  ? AppBar(
-                      title: TextField(
-                          decoration:
-                              InputDecoration(hintText: controller.address),
-                          onChanged: (data) {
-                            if (data != "") {
-                              controller.address = data;
-                            }
-                          }))
-                  : null,
+              appBar: false ? AppBar(title: Text("zero-gpt")) : null,
               body: Padding(
                 padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
                 child: Column(
@@ -40,35 +30,50 @@ class ChatPage extends StatelessWidget {
                         onChanged: (data) {
                           controller.prompt = data;
                         },
-                        suffixIcon: GestureDetector(
-                            onTap: () {
-                              if (controller.parsing) return;
-                              controller.prompt = "";
-                              controller.editController.clear();
-                            },
-                            child: Icon(Icons.close)),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 0.0),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                    onTap: () {
+                                      controller.clearPrompt();
+                                    },
+                                    child: Icon(Icons.close)),
+                                const SizedBox(height: 10),
+                                GestureDetector(
+                                    onTap: () {
+                                      controller.last();
+                                    },
+                                    child: Icon(Icons.arrow_circle_up)),
+                                const SizedBox(height: 10),
+                                GestureDetector(
+                                    onTap: () {
+                                      controller.next();
+                                    },
+                                    child: Icon(Icons.arrow_circle_down))
+                              ]),
+                        ),
                         textEditingController: controller.editController),
                     //SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         NeuButton("新话题", onPressed: () async {
-                          if (controller.parsing) return;
-                          controller.prompt = "";
-                          controller.completion = "";
-                          controller.chatMessageList.flush();
-                          controller.editController.clear();
-                          controller.update();
-                          print("开启新的话题");
+                          controller.newConversation();
                         },
                             //color: Colors.green,
                             //iconData: Icons.new_label_rounded,
                             shape: NeumorphicShape.concave,
                             depth: 1),
                         NeuButton(
-                          "发送",
+                          !controller.parsing ? "发送" : "停止",
                           onPressed: () async {
-                            await controller.sendMessage();
+                            if (controller.parsing) {
+                              await controller.cancelMessage();
+                            } else {
+                              await controller.sendMessage();
+                            }
                           },
                           //color: Colors.green,
                           //iconData: Icons.send,
@@ -79,10 +84,7 @@ class ChatPage extends StatelessWidget {
                         NeuButton(
                           "复制",
                           onPressed: () async {
-                            if (controller.parsing) return;
-                            await Clipboard.setData(ClipboardData(
-                                text:
-                                    "${controller.prompt}\n${controller.completion}"));
+                            controller.clipborad();
                           },
                           //iconData: Icons.copy,
                           shape: NeumorphicShape.concave,
@@ -106,16 +108,19 @@ class ChatPage extends StatelessWidget {
                     Expanded(
                         child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: kIsWeb
-                          ? MarkdownWidget(
-                              data: controller.completion,
-                              config: MarkdownConfig(configs: [
-                                const PreConfig(language: 'auto'),
-                              ]))
-                          : Align(
-                              alignment: Alignment.topLeft,
-                              child: SingleChildScrollView(
-                                child: !controller.thinkOK
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: kIsWeb
+                            ? !controller.thinkOK && controller.parsing
+                                ? Text(controller.thinkText,
+                                    style: TextStyle(fontSize: 20))
+                                : MarkdownWidget(
+                                    data: controller.completion,
+                                    config: MarkdownConfig(configs: [
+                                      const PreConfig(language: 'auto'),
+                                    ]))
+                            : SingleChildScrollView(
+                                child: !controller.thinkOK && controller.parsing
                                     ? Text(controller.thinkText,
                                         style: TextStyle(fontSize: 20))
                                     : MarkdownViewer(
@@ -137,25 +142,27 @@ class ChatPage extends StatelessWidget {
                                         },
                                       ),
                               ),
-                            ),
-                    )),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Wrap(
-                        spacing: 8.0,
-                        runSpacing: 4.0,
-                        children: controller.questions
-                            .map((item) => ElevatedButton(
-                                onPressed: () {
-                                  controller.prompt = item;
-                                  controller.editController.text = item;
-                                  controller.questions = [];
-                                  controller.sendMessage();
-                                },
-                                child: Text(item)))
-                            .toList(),
                       ),
-                    )
+                    )),
+                    MediaQuery.of(context).viewInsets.bottom > 0
+                        ? Container()
+                        : Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Wrap(
+                              spacing: 2.0,
+                              runSpacing: 2.0,
+                              children: controller.questions
+                                  .map((item) => ElevatedButton(
+                                      onPressed: () {
+                                        controller.prompt = item;
+                                        controller.editController.text = item;
+                                        controller.questions = [];
+                                        controller.sendMessage();
+                                      },
+                                      child: Text(item)))
+                                  .toList(),
+                            ),
+                          )
                   ],
                 ),
               )),

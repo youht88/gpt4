@@ -31,9 +31,11 @@ class NeuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Widget> children = [];
     if (iconData != null) {
-      children.add(Icon(iconData,
-          color: (color?.withOpacity(0.7) ?? _iconsColor(context)),
-          size: size));
+      children.add(Center(
+        child: Icon(iconData,
+            color: (color?.withOpacity(0.7) ?? _iconsColor(context)),
+            size: size),
+      ));
     }
     if (text != "") {
       children.add(Text(text,

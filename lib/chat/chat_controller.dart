@@ -5,6 +5,7 @@ import 'dart:convert';
 //import 'package:flutter/foundation.dart';
 //import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:gpt4/socket/socket_client.dart';
 
@@ -46,7 +47,7 @@ class ChatMessageList {
 class ChatController extends GetxController {
   bool parsing = false;
   bool thinkOK = false;
-  String address = "http://0004.gpt4.vip:9322";
+  //String address = "http://0004.gpt4.vip:9323";
   //String address = "http://localhost:3000";
   String completion = "";
   String prompt = "";
@@ -55,6 +56,7 @@ class ChatController extends GetxController {
   var editController = TextEditingController();
   ChatMessageList chatMessageList = ChatMessageList();
   late SocketClient socketClient;
+  int currentIndex = 0;
   @override
   void onInit() {
     super.onInit();
@@ -62,16 +64,71 @@ class ChatController extends GetxController {
   }
 
   void help() {
-    completion = '''\\\n\\\n **zero-gpt  `http://gpt4.vip`  使用说明**
-           \\\n\\\n `新话题`: 新开启一个话题，消除之前上下文的影响 
-           \\\n\\\n `发送`  : 发送指令并获得回复 
-           \\\n\\\n `复制`  : 将最近的指令和回复一起复制到粘贴板📋
+    questions = [];
+    completion = '''\\\n\\\n **zero-gpt 0.1.0  `http://gpt4.vip`  使用说明**
+           \\\n\\\n `新话题`: 开启一个新话题，之前的对话将被清空。 
+           \\\n\\\n `发送/停止`: 发送指令并获得回复,在获得回复时可以随时停止。在响应停止之前其他功能不可用。 
+           \\\n\\\n `复制`: 将最近的指令和回复一起复制到粘贴板📋。注意：如果您的浏览器限制了使用粘贴板，该功能可能不起作用。
            \\\n\\\n  ---- made by *易联众-云链科技* ----
         ''';
     update();
   }
 
+  void last() {
+    if (parsing) return;
+    //print("last:${currentIndex}, ${chatMessageList.data.length}");
+    if (currentIndex <= 0) {
+      currentIndex = 0;
+      return;
+    }
+    currentIndex -= 2;
+
+    prompt = chatMessageList.data[currentIndex].content;
+    editController.text = prompt;
+    completion = chatMessageList.data[currentIndex + 1].content;
+    update();
+  }
+
+  void next() {
+    if (parsing) return;
+    //print("next:${currentIndex}, ${chatMessageList.data.length}");
+    if (currentIndex >= chatMessageList.data.length) {
+      currentIndex = chatMessageList.data.length;
+      return;
+    }
+    currentIndex += 2;
+    prompt = chatMessageList.data[currentIndex - 2].content;
+    editController.text = prompt;
+    completion = chatMessageList.data[currentIndex - 1].content;
+    update();
+  }
+
+  void clearPrompt() {
+    prompt = "";
+    editController.clear();
+  }
+
+  Future<void> clipborad() async {
+    if (parsing) return;
+    await Clipboard.setData(ClipboardData(text: "$prompt\n$completion"));
+  }
+
+  void newConversation() {
+    if (parsing) return;
+    prompt = "";
+    completion = "";
+    questions = [];
+    chatMessageList.flush();
+    editController.clear();
+    currentIndex = 0;
+    update();
+    debugPrint("开启新的话题");
+  }
+
   void thinking() {
+    if (!parsing) {
+      return;
+    }
     // 初始化字符串和计数器
     thinkText = '';
     update();
@@ -97,11 +154,18 @@ class ChatController extends GetxController {
     });
   }
 
+  cancelMessage() {
+    socketClient.socket.emit('cancel');
+    parsing = false;
+    update();
+  }
+
   Future<void> sendMessage() async {
     try {
       if (parsing) return;
       parsing = true;
       thinkOK = false;
+      questions = [];
       thinking();
       update();
       chatMessageList.add(ChatMessage("user", prompt));
@@ -179,11 +243,13 @@ class ChatController extends GetxController {
       //   update();
       // });
       //模式四、socket.io
-      messages.insert(0,
-          {"role": "system", "content": "请用中文回答所有问题,然后提出2到4个相关问题,问题以@@@@换行"});
-      socketClient.socket.emit('chat', {"stream": true, "messages": messages});
+      messages.insert(0, {
+        "role": "system",
+        "content": "请用中文回答所有问题,然后提出2到4个相关问题,问题以@@@@换行。每个问题不要超过15个字"
+      });
       completion = "";
       update();
+      socketClient.socket.emit('chat', {"stream": true, "messages": messages});
     } catch (e) {
       parsing = false;
       thinkOK = true;
