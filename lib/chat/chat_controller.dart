@@ -47,7 +47,7 @@ class ChatMessageList {
 class ChatController extends GetxController {
   bool parsing = false;
   bool thinkOK = false;
-  String address = "http://openai.gpt4.vip:9323";
+  //String address = "http://openai.gpt4.vip:9323";
   //String address = "http://localhost:3000";
   String completion = "";
   String prompt = "";
