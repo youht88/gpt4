@@ -10,19 +10,19 @@ class SocketClient {
   SocketClient(this.chatController) {
     socket = IO.io(
         'http://0003.gpt4.vip:9322',
-        //'http://127.0.0.1:8765',
+        //'http://127.0.0.1:3000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
-            //.enableForceNewConnection()
+            .enableForceNewConnection()
             //.enableAutoConnect()
             .enableReconnection()
             .disableAutoConnect()
             .build());
-    socket.connect();
     onConnect();
     onDisconnect();
-    //onTestAck();
     onCompletionChunk();
+    //onTestAck();
+    socket.connect();
   }
   List<int> encode(dynamic data) {
     return utf8.encode(json.encode(data));
@@ -38,6 +38,7 @@ class SocketClient {
       socket.emit('test', {'prompt': 'hello'});
       //socket.emitWithBinary('userConnect', encode(data));
       //socket.emitWithAck('userConnect', encode(data), binary: true);  //与上一句等价
+      socket.offAny();
     });
   }
 
@@ -55,6 +56,11 @@ class SocketClient {
     String temp = "";
     bool check = false;
     socket.on('completionChunk', ((data) {
+      if (chatController.cancel) {
+        temp = "";
+        check = false;
+        chatController.cancel = false;
+      }
       if (data != '[DONE]' && data != '[ERROR]') {
         chatController.thinkOK = true;
         if (data.toString().trim() == "@@@@") {

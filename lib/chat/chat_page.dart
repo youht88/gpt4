@@ -30,30 +30,26 @@ class ChatPage extends StatelessWidget {
                         onChanged: (data) {
                           controller.prompt = data;
                         },
-                        suffixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 0.0),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                    onTap: () {
-                                      controller.clearPrompt();
-                                    },
-                                    child: Icon(Icons.close)),
-                                const SizedBox(height: 10),
-                                GestureDetector(
-                                    onTap: () {
-                                      controller.last();
-                                    },
-                                    child: Icon(Icons.arrow_circle_up)),
-                                const SizedBox(height: 10),
-                                GestureDetector(
-                                    onTap: () {
-                                      controller.next();
-                                    },
-                                    child: Icon(Icons.arrow_circle_down))
-                              ]),
-                        ),
+                        prefixIcon: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              GestureDetector(
+                                  onTap: () {
+                                    controller.last();
+                                  },
+                                  child: const Icon(Icons.arrow_circle_up)),
+                              const SizedBox(height: 10),
+                              GestureDetector(
+                                  onTap: () {
+                                    controller.next();
+                                  },
+                                  child: const Icon(Icons.arrow_circle_down))
+                            ]),
+                        suffixIcon: GestureDetector(
+                            onTap: () {
+                              controller.clearPrompt();
+                            },
+                            child: const Icon(Icons.close)),
                         textEditingController: controller.editController),
                     //SizedBox(height: 8),
                     Row(
@@ -117,7 +113,7 @@ class ChatPage extends StatelessWidget {
                                 : MarkdownWidget(
                                     data: controller.completion,
                                     config: MarkdownConfig(configs: [
-                                      const PreConfig(language: 'auto'),
+                                      const PreConfig(language: 'js'),
                                     ]))
                             : SingleChildScrollView(
                                 child: !controller.thinkOK && controller.parsing
