@@ -9,7 +9,7 @@ class SocketClient {
   late final chatController;
   SocketClient(this.chatController) {
     socket = IO.io(
-        'http://0003.gpt4.vip:9322',
+        'http://openai.gpt4.vip:9322',
         //'http://127.0.0.1:3000',
         IO.OptionBuilder()
             .setTransports(['websocket'])

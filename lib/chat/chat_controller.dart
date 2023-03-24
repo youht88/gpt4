@@ -66,7 +66,7 @@ class ChatController extends GetxController {
 
   void help() {
     questions = [];
-    completion = '''\\\n\\\n **zero-gpt 0.1.1  `http://gpt4.vip`  使用说明**
+    completion = '''\\\n\\\n **zero-gpt 0.2.2  `http://gpt4.vip`  使用说明**
            \\\n\\\n `新话题`: 开启一个新话题，之前的对话将被清空。 
            \\\n\\\n `发送/停止`: 发送指令并获得回复,在获得回复时可以随时停止。在响应停止之前其他功能不可用。 
            \\\n\\\n `复制`: 将最近的指令和回复一起复制到粘贴板📋。注意：如果您的浏览器限制了使用粘贴板，该功能可能不起作用。
@@ -179,19 +179,22 @@ class ChatController extends GetxController {
       thinking();
       update();
       chatMessageList.add(ChatMessage("user", prompt));
-      List<dynamic> messages = chatMessageList.toJSON();
+      final List<ChatMessage> shadowData = List.from(chatMessageList.data);
+      final shadowMessageList = ChatMessageList();
+      shadowMessageList.data = shadowData;
+      List<dynamic> messages = shadowMessageList.toJSON();
       while (true) {
-        print("message length:${json.encode(messages).length}");
+        //print("message length:${json.encode(messages)}");
         if (json.encode(messages).length > 2000) {
-          if (chatMessageList.isEmpty()) {
+          if (shadowMessageList.isEmpty()) {
             Get.showSnackbar(const GetSnackBar(
                 duration: Duration(milliseconds: 3000),
                 title: "警告",
                 message: "高级用户才有权使用更长的话题上下文。要继续使用，您需要新建一个话题。"));
             return;
           } else {
-            chatMessageList.shift();
-            messages = chatMessageList.toJSON();
+            shadowMessageList.shift();
+            messages = shadowMessageList.toJSON();
             continue;
           }
         } else {
